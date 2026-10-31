@@ -1,0 +1,26 @@
+{
+  "provenance": "Transcribed from draft.ipynb saved outputs and code; metrics rounded to displayed precision; not rerun",
+  "split": "dev",
+  "dataset": "openlanguagedata/flores_plus",
+  "dataset_revision": "1147e2dc59f37fbb5c22fd8478770de02cd399f9",
+  "selected_pairs": 200,
+  "available_pairs": 997,
+  "seed": 42,
+  "reference_sha256_prefix": "e3efbaaa8ed732b6",
+  "model_revisions": null,
+  "missing_metadata": "Export model revisions, full reference hash and generation defaults from private Drive benchmark JSON",
+  "hardware": "NVIDIA L4",
+  "precision": "float32",
+  "beams": [
+    1,
+    4
+  ],
+  "repeats": 3,
+  "warmups": 3,
+  "batch_size": 1,
+  "max_input_tokens": 512,
+  "max_new_tokens": 256,
+  "do_sample": false,
+  "checks_passed": 11,
+  "details": "See repository README for timing and metric settings"
+}

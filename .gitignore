@@ -1,0 +1,39 @@
+# Private data and credentials
+.env
+.env.*
+!.env.example
+*token*
+*.pem
+*.key
+# Downloaded data and model weights
+data/*
+!data/README.md
+models/*
+!models/README.md
+checkpoints/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.jpg
+*.jpeg
+*.png
+*.webp
+# Text-bearing benchmark artifacts stay in private Drive
+*beam*.json
+mt_step1_*.json
+quality_checks*.json
+sentence_comparison.csv
+dev_*_seed*.json
+# Local runtime files
+.cache/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

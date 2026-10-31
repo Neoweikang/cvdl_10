@@ -1,0 +1,5 @@
+dataset,split,samples,checkpoint,CER_percent,CER_NFKC_percent,WER_percent,provenance
+Teklia/IAM-line,validation,64,microsoft/trocr-base-handwritten,1.22,,4.9,saved notebook rounded output
+Teklia/IAM-line,validation,64,english_trocr_public_epoch1,1.1,,4.71,saved notebook rounded output
+Teklia/CASIA-HWDB2-line,validation,64,PaddlePaddle/PP-OCRv5_server_rec_safetensors,6.97,4.61,,saved notebook rounded output
+Teklia/CASIA-HWDB2-line,validation,64,chinese_ppocr_public_frozen_bn_epoch1,3.84,3.84,,saved notebook rounded output

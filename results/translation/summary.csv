@@ -1,0 +1,5 @@
+direction,beams,samples,BLEU,chrF,median_seconds,p95_seconds,timing_calls,empty_outputs,output_limit_hits,changed_on_repeat
+en-zh,1,200,30.303,28.025,0.145,0.256,600,0,0,0
+en-zh,4,200,31.592,29.635,0.177,0.31,600,0,0,0
+zh-en,1,200,21.289,52.746,0.181,0.291,600,0,0,0
+zh-en,4,200,21.175,53.175,0.225,0.356,600,0,0,0
