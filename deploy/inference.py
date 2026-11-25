@@ -1,4 +1,6 @@
 """Model-free orchestration for one line of OCR and translation."""
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from helpers import choose_language, script_counts
@@ -46,3 +48,4 @@ def run_line(image, language, timed, recognise, translate) -> LineResult:
     else:
         translation, timings['translate'] = '', 0.0
     return LineResult(language, routing, text, confidence, translation, timings)
+
