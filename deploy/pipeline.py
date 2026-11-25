@@ -20,7 +20,7 @@ import gc
 import os
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import torch
@@ -38,7 +38,8 @@ from transformers import (
     ViTImageProcessor,
     VisionEncoderDecoderModel,
 )
-from helpers import HAN_RANGES, choose_language, script_counts, summarise_ms
+from helpers import summarise_ms
+from inference import LineResult, run_line
 
 # Foundation models and the revisions recorded by the project notebook.
 BASE_OCR = {
@@ -163,19 +164,6 @@ def _short(source: str) -> str:
     path = Path(source)
     return f'{path.parent.parent.name}/{path.parent.name}/{path.name}' if path.exists() else source
 
-
-@dataclass
-class LineResult:
-    language: str               # 'en' or 'zh'
-    routing: str                # How the language was chosen.
-    text: str
-    confidence: float | None    # Lower-quintile token probability (0-1).
-    translation: str
-    timings_ms: dict[str, float] = field(default_factory=dict)
-
-    @property
-    def total_ms(self) -> float:
-        return sum(self.timings_ms.values())
 
 
 # --------------------------------------------------------------------------- #
@@ -343,28 +331,8 @@ class Pipeline:
 
     def read_line(self, image: Image.Image | None, language: str = 'auto') -> LineResult:
         """OCR one line, choose the language if needed, then translate."""
-        if image is None:
-            raise ValueError('Add an image of one handwritten line.')
-        if language not in ('auto', 'en', 'zh'):
-            raise ValueError("language must be 'auto', 'en' or 'zh'.")
         with self._lock:
-            timings: dict[str, float] = {}
-            if language in ('en', 'zh'):
-                (text, confidence), timings[f'ocr_{language}'] = self._timed(self.recognise, image, language)
-                routing = 'selected manually'
-            else:
-                # PP-OCRv5 reads both scripts, so it decides the language first.
-                (text, confidence), timings['ocr_zh'] = self._timed(self.recognise, image, 'zh')
-                counts = script_counts(text)
-                language = choose_language(counts)
-                if language == 'en':
-                    # Mostly Latin: TrOCR is the stronger English reader.
-                    (text, confidence), timings['ocr_en'] = self._timed(self.recognise, image, 'en')
-                mixed = counts['en'] and counts['zh']
-                routing = ('auto: mixed script, routed by the majority' if mixed
-                           else 'auto: script detection')
-            translation, timings['translate'] = self._timed(self.translate, text, language) if text else ('', 0.0)
-            return LineResult(language, routing, text, confidence, translation, timings)
+            return run_line(image, language, self._timed, self.recognise, self.translate)
 
     def translate_edited(self, text: str, language: str) -> tuple[str, float]:
         with self._lock:
