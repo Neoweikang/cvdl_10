@@ -19,7 +19,17 @@ Wei Kang’s work spans handwriting collection, OCR training and evaluation, Eng
 ## Other team members
 
 ## Reiner
-Deployment of the notebook onto Modal as part of the model deployment requirement
+
+Reiner’s work covers the model deployment requirement: a standalone version of the recognition and translation pipeline that runs locally and on a free cloud tier, the measurements used to choose and optimise the deployed models, and the deployment section of the presentation. [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece)
+
+| Area | Contribution | Commit evidence |
+| --- | --- | --- |
+| Standalone pipeline | Reproduced the notebook’s inference path outside Colab in `deploy/pipeline.py`: TrOCR and PP-OCRv5 loading and decoding, script-based language routing, Marian and NLLB translation with the notebook’s decoding settings and pinned model revisions, and the lower-quintile confidence score. | [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) |
+| Web app | Built `deploy/app.py`, a Gradio app styled after the Colab presenter, with upload, paste and webcam input, manual or automatic language selection, an editable transcription, re-translation of edits and per-stage timings. Fixed mirrored webcam photos. | [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) |
+| Local and cloud deployment | Uploaded the trained 9 November English weights to a private Hugging Face model repository. Evaluated Hugging Face Spaces, which now require a paid plan for Gradio apps, and Vercel, whose free functions are too small for PyTorch and the models. Deployed on Modal’s free CPU tier with a cached model volume, a secret for the private weights and scale-to-zero when idle (`deploy/modal_app.py`). | [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) |
+| Checkpoint selection | Ran the saved W01 checkpoint checks (Cell 51A) on the 18 November run, which produced its W01 results of 6.25% English and 5.66% Chinese character error. Chose the deployed models by W01 character error: trained English from the 9 November run (5.00%) and the pretrained Chinese recognizer (4.56%). | `results/20261118T131112Z_c25ee85f` (team Drive) [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) |
+| Optimisation experiments | Compared FP32 and INT8 dynamic quantisation on CPU. INT8 degraded TrOCR: on the same line, FP32 read “Hello my name is Reiner” at confidence 0.98, while INT8 read “the 1/2mq name is Reimer” at 0.19. For the translators, INT8 produced identical translations and was faster: NLLB from 2,279 ms to 734 ms and Marian from 155 ms to 97 ms. Kept OCR in FP32 and the translators in INT8. Added `deploy/benchmark.py` for size, latency and CER comparisons. | [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) |
+| Documentation and presentation | Wrote `deploy/README.md` covering setup, local and cloud deployment, model selection and the optimisation results. Added the deployment slide to the final presentation with measured Modal timings: 2,030 ms for the English sample line and 746 ms for the Chinese line. | [7c21201](https://github.com/Neoweikang/cvdl_10/commit/7c21201980d84fe183303f89dc466ecaa0454ece) Final presentation, slide 8 |
 
 ## Yu Wei
 Live translation, provisional updates, finalisation, session history, export and camera diagnostics. Developed team poster as part of the deliverables
