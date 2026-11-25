@@ -18,4 +18,15 @@ Wei Kang’s work spans handwriting collection, OCR training and evaluation, Eng
 
 ## Other team members
 
-Kim, Reiner, Yu Wei and Wei En: specific deliverables and individual commit evidence await confirmation. Team agreement remains pending.
+## Reiner
+Deployment of the notebook onto Modal as part of the model deployment requirement
+
+## Yu Wei
+Live translation, provisional updates, finalisation, session history, export and camera diagnostics. Developed team poster as part of the deliverables
+
+## Wei En
+Development of OCR transcription and translation as the project direction
+
+## Kim
+NIL
+
