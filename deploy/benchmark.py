@@ -26,7 +26,8 @@ from pathlib import Path
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from pipeline import Pipeline, Settings, resolve_optimisation, summarise_ms
+from helpers import edit_distance, summarise_ms
+from pipeline import Pipeline, Settings, resolve_optimisation
 
 SYNTHETIC_LINES = [
     'The quick brown fox jumps over the lazy dog',
@@ -35,16 +36,6 @@ SYNTHETIC_LINES = [
 ]
 SYNTHETIC_MT = {'en': ['I will meet you at the station tomorrow.', 'The weather is cold today.'],
                 'zh': ['我明天在车站等你。', '今天天气很冷。']}
-
-
-def edit_distance(a: str, b: str) -> int:
-    previous = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        current = [i]
-        for j, cb in enumerate(b, 1):
-            current.append(min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (ca != cb)))
-        previous = current
-    return previous[-1]
 
 
 def load_rows(path: Path) -> list[dict]:

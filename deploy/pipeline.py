@@ -18,10 +18,8 @@ from __future__ import annotations
 
 import gc
 import os
-import statistics
 import threading
 import time
-import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -40,6 +38,7 @@ from transformers import (
     ViTImageProcessor,
     VisionEncoderDecoderModel,
 )
+from helpers import HAN_RANGES, choose_language, script_counts, summarise_ms
 
 # Foundation models and the revisions recorded by the project notebook.
 BASE_OCR = {
@@ -65,8 +64,6 @@ MT_MAX_NEW_TOKENS = 256
 
 OPTIMISATIONS = ('none', 'fp16', 'int8')
 LANGUAGE_NAMES = {'en': 'English', 'zh': 'Chinese'}
-HAN_RANGES = ((0x3400, 0x4DBF), (0x4E00, 0x9FFF), (0xF900, 0xFAFF),
-              (0x20000, 0x2EBEF), (0x30000, 0x323AF))
 
 
 # --------------------------------------------------------------------------- #
@@ -160,18 +157,6 @@ def float_dtype(model: torch.nn.Module) -> torch.dtype:
         if parameter.is_floating_point():
             return parameter.dtype
     return torch.float32
-
-
-def script_counts(text: str) -> dict[str, int]:
-    """Count Han, Latin and other letters, as in notebook Cell 47."""
-    counts = {'zh': 0, 'en': 0, 'other': 0}
-    for char in unicodedata.normalize('NFKC', text):
-        code = ord(char)
-        if any(low <= code <= high for low, high in HAN_RANGES):
-            counts['zh'] += 1
-        elif char.isalpha():
-            counts['en' if 'LATIN' in unicodedata.name(char, '') else 'other'] += 1
-    return counts
 
 
 def _short(source: str) -> str:
@@ -371,12 +356,10 @@ class Pipeline:
                 # PP-OCRv5 reads both scripts, so it decides the language first.
                 (text, confidence), timings['ocr_zh'] = self._timed(self.recognise, image, 'zh')
                 counts = script_counts(text)
-                if counts['en'] > counts['zh']:
+                language = choose_language(counts)
+                if language == 'en':
                     # Mostly Latin: TrOCR is the stronger English reader.
                     (text, confidence), timings['ocr_en'] = self._timed(self.recognise, image, 'en')
-                    language = 'en'
-                else:
-                    language = 'zh'
                 mixed = counts['en'] and counts['zh']
                 routing = ('auto: mixed script, routed by the majority' if mixed
                            else 'auto: script detection')
@@ -400,10 +383,3 @@ class Pipeline:
                 f'Start-up: {load}\n\nEnglish OCR: `{_short(s.en_ocr)}` · Chinese OCR: `{_short(s.zh_ocr)}`')
 
 
-def summarise_ms(values: list[float]) -> tuple[float, float]:
-    """Median and 95th percentile in milliseconds."""
-    if not values:
-        return float('nan'), float('nan')
-    ordered = sorted(values)
-    p95 = ordered[min(len(ordered) - 1, round(0.95 * (len(ordered) - 1)))]
-    return statistics.median(ordered), p95
