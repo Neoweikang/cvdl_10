@@ -38,5 +38,10 @@ Live translation, provisional updates, finalisation, session history, export and
 Development of OCR transcription and translation as the project direction
 
 ## Kim
-NIL
 
+Kim added offline tests and repository checks for the deployment helpers, notebooks, and Markdown documentation. These checks run in CI without loading OCR models or executing notebook cells.
+
+| Area | Contribution | Commit evidence |
+|---|---|---|
+| Deployment helper tests | Centralised `script_counts`, `choose_language`, `edit_distance` and `summarise_ms` in `deploy/helpers.py`; updated `deploy/pipeline.py` to use the routing helper; and added 17 offline tests in `deploy/tests/test_helpers.py`. | [7656a65](https://github.com/Neoweikang/cvdl_10/commit/7656a655db53d4682fabe404a4bb32220344e817) |
+| Repository checks and CI | Added `tools/check_notebooks.py` for notebook structure and `tools/check_markdown_links.py` for local documentation links, with 10 unit tests in `tools/tests/`. Added both checks and the helper tests to `.github/workflows/deploy-tests.yml`. | [7656a65](https://github.com/Neoweikang/cvdl_10/commit/7656a655db53d4682fabe404a4bb32220344e817) |
