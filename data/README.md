@@ -16,6 +16,8 @@ Current code assignments supersede the older project-scope plan:
 
 Saved snapshot: 580 English training lines, 35 pages, W04 only; zero curated validation/test lines. Assignments are configured, not evidence that all writers have submitted data.
 
+The collection manifest snapshot and the reviewed handwriting validation set are separate artifacts. Published validation scores come from the reviewed set; they do not show that those examples are included in this manifest snapshot. Check the manifest before reporting which samples are available or reproducing the scores.
+
 Public OCR sources: `Teklia/IAM-line` (English) and `Teklia/CASIA-HWDB2-line` (Chinese) on Hugging Face. Obtain access under each dataset's terms. Cells 5-6 inspect official splits and cache 512 training and 64 validation lines per language in private Drive; test is loaded only in Cell 19A. Public dataset revisions were not recorded.
 
 Translation: gated `openlanguagedata/flores_plus` on Hugging Face, CC-BY-SA-4.0 as recorded by Cell 19E. Accept access conditions and use your own read token. Only `dev/eng_Latn.jsonl` and `dev/cmn_Hans.jsonl` at the revision recorded in README are downloaded; the 200 paired references and full benchmark JSON stay private in Drive. Published files contain aggregate scores and settings only.
