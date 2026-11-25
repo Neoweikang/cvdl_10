@@ -1,0 +1,10 @@
+# Local run (your PC). Install PyTorch FIRST, using the CUDA command from
+# https://pytorch.org/get-started/locally/ (Stable, your OS, Pip, Python, a CUDA 12.x
+# version), so the GPU is used. Tested with torch 2.15.0 / torchvision 0.29.2.
+# Then: pip install -r requirements.txt
+transformers==5.17.0
+gradio==6.31.0
+sentencepiece==0.2.1
+sacremoses==0.1.1
+huggingface_hub>=1.0
+Pillow>=11

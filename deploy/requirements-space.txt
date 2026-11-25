@@ -1,0 +1,10 @@
+# Hugging Face Space (free CPU). Uploaded as requirements.txt by publish.py.
+# Gradio comes from sdk_version in the Space README, so it is not listed here.
+--extra-index-url https://download.pytorch.org/whl/cpu
+# Pinned: torch.ao dynamic quantisation is deprecated; 2.15.0 is the tested version.
+torch==2.15.0
+torchvision==0.29.2
+transformers==5.17.0
+sentencepiece==0.2.1
+sacremoses==0.1.1
+Pillow>=11
