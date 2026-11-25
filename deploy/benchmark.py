@@ -2,6 +2,7 @@
 
 Usage
   python benchmark.py --data lines.csv
+  python benchmark.py --data lines.csv --routing
   python benchmark.py --data lines.csv --configs cpu:none,cpu:int8,cuda:none,cuda:fp16
   python benchmark.py                  # no labelled data: size and latency only
 
@@ -26,7 +27,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from helpers import edit_distance, summarise_ms
 from benchmark_data import load_rows
+from inference import run_line
 from pipeline import Pipeline, Settings, resolve_optimisation
+from routing_eval import evaluate_routing
 
 SYNTHETIC_LINES = [
     'The quick brown fox jumps over the lazy dog',
@@ -51,12 +54,22 @@ def synthetic_rows() -> list[dict]:
     return rows
 
 
-def run_config(base: Settings, device: str, mode: str, rows: list[dict], repeats: int) -> dict:
+def run_config(base: Settings, device: str, mode: str, rows: list[dict], repeats: int,
+               measure_routing: bool = False) -> dict:
     settings = replace(base, device=device, optimisation=resolve_optimisation(mode, device))
     pipeline = Pipeline(settings).load(warmup=True)
     record = dict(config=f'{device}:{settings.optimisation}', load_seconds=round(pipeline.load_seconds, 1),
                   size_mb={k: round(v, 1) for k, v in pipeline.sizes_mb.items()},
                   size_total_mb=round(sum(pipeline.sizes_mb.values()), 1), languages={})
+    labelled_rows = [row for row in rows if row['text'] is not None]
+    if measure_routing:
+        def route_row(row):
+            image = row['image'] if 'image' in row else Image.open(row['image_path']).convert('RGB')
+            result = run_line(image, 'auto', pipeline._timed, pipeline.recognise,
+                              lambda _text, _language: '')
+            return result.language
+
+        record['routing'] = evaluate_routing(labelled_rows, route_row)
     for lang in ('en', 'zh'):
         subset = [r for r in rows if r['language'] == lang]
         if not subset:
@@ -109,6 +122,22 @@ def markdown(records: list[dict], labelled: bool) -> str:
               '|---|' + '---:|' * len(records[0]['size_mb'])]
     for r in records:
         lines.append(f"| {r['config']} | " + ' | '.join(f'{v:,.0f} MB' for v in r['size_mb'].values()) + ' |')
+    if labelled and any('routing' in r for r in records):
+        lines += ['', '### Automatic language routing',
+                  'Expected route is the majority script in the reference text; ties count as Chinese.',
+                  '', '| Config | Expected language | Lines | Correct | Accuracy % |',
+                  '|---|---|---:|---:|---:|']
+        for r in records:
+            routing = r.get('routing')
+            if not routing:
+                continue
+            for language in ('en', 'zh'):
+                item = routing['by_expected_language'][language]
+                accuracy = '–' if item['accuracy_percent'] is None else f"{item['accuracy_percent']:.2f}"
+                lines.append(f"| {r['config']} | {language} | {item['lines']} | {item['correct']} | {accuracy} |")
+            accuracy = '–' if routing['accuracy_percent'] is None else f"{routing['accuracy_percent']:.2f}"
+            lines.append(f"| {r['config']} | **overall** | **{routing['lines']}** | "
+                         f"**{routing['correct']}** | **{accuracy}** |")
     if not labelled:
         lines += ['', 'Synthetic printed lines: latency and size only, no accuracy.']
     return '\n'.join(lines)
@@ -117,10 +146,14 @@ def markdown(records: list[dict], labelled: bool) -> str:
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--data', type=Path, help='CSV of held-out labelled lines')
+    parser.add_argument('--routing', action='store_true',
+                        help='also score auto language routing against reference-text script (requires --data)')
     parser.add_argument('--configs', help='Comma-separated device:mode, e.g. cpu:none,cpu:int8')
     parser.add_argument('--repeats', type=int, default=3)
     parser.add_argument('--out', type=Path, default=Path('results/deployment'))
     args = parser.parse_args()
+    if args.routing and not args.data:
+        parser.error('--routing requires --data with labelled lines')
 
     configs = args.configs or ('cpu:none,cpu:int8' + (',cuda:none,cuda:fp16' if torch.cuda.is_available() else ''))
     pairs = [tuple(item.strip().split(':')) for item in configs.split(',')]
@@ -130,7 +163,7 @@ def main():
     records = []
     for device, mode in pairs:
         print(f'Benchmarking {device}:{mode} on {len(rows)} lines…', flush=True)
-        records.append(run_config(base, device, mode, rows, args.repeats))
+        records.append(run_config(base, device, mode, rows, args.repeats, measure_routing=args.routing))
 
     table = markdown(records, labelled=bool(args.data))
     args.out.mkdir(parents=True, exist_ok=True)
