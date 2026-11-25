@@ -14,10 +14,8 @@ are not saved, so no handwriting text from the private dataset ends up in Git.
 from __future__ import annotations
 
 import argparse
-import csv
 import gc
 import json
-import sys
 import unicodedata
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -27,6 +25,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 
 from helpers import edit_distance, summarise_ms
+from benchmark_data import load_rows
 from pipeline import Pipeline, Settings, resolve_optimisation
 
 SYNTHETIC_LINES = [
@@ -36,22 +35,6 @@ SYNTHETIC_LINES = [
 ]
 SYNTHETIC_MT = {'en': ['I will meet you at the station tomorrow.', 'The weather is cold today.'],
                 'zh': ['我明天在车站等你。', '今天天气很冷。']}
-
-
-def load_rows(path: Path) -> list[dict]:
-    with path.open(encoding='utf-8-sig', newline='') as handle:
-        rows = list(csv.DictReader(handle))
-    missing = {'image_path', 'text', 'language'} - set(rows[0] if rows else {})
-    if missing:
-        sys.exit(f'{path} is missing columns: {", ".join(sorted(missing))}')
-    for row in rows:
-        if row['language'] not in ('en', 'zh'):
-            sys.exit(f'Language must be en or zh, got {row["language"]!r}')
-        image = Path(row['image_path'])
-        row['image_path'] = image if image.is_absolute() else path.parent / image
-        if not row['image_path'].is_file():
-            sys.exit(f'Image not found: {row["image_path"]}')
-    return rows
 
 
 def synthetic_rows() -> list[dict]:
